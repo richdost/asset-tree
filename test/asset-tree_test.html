@@ -1,0 +1,103 @@
+<!doctype html>
+
+<html>
+  <head>
+    <title>asset-tree test</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../asset-tree.html">
+  </head>
+  <body>
+
+    <test-fixture id="basic">
+      <template>
+        <asset-tree></asset-tree>
+      </template>
+    </test-fixture>
+
+    <script>
+      suite('asset-tree', function() {
+
+        test('instantiating the element works', function() {
+          var element = fixture('basic');
+          assert.equal(element.is, 'asset-tree');
+        });
+
+        test('data attribute default', function() {
+        var el = fixture('basic');
+        assert.equal('[]',JSON.stringify(el._nodes));
+        });
+
+test('data attribute updates', function() {
+  var el = fixture('basic');
+  el.data = JSON.stringify([{ uri: '/plane/my-plane' }]);
+  assert.equal(el._nodes.length,1);
+  assert.equal(el._nodes[0].uri,'/plane/my-plane');
+});
+
+test('draws a line', function() {
+  var el = fixture('basic');
+  assert(el.$$('line'));
+});
+
+test('node created for one node tree', function() {
+  var el = fixture('basic');
+  var planeData = JSON.stringify([
+    { uri: '/plane/my-plane' }
+  ]);
+  el.data = planeData;
+  //var circleEls = el.$$('circle');
+  // console.log('circleEls:',circleEls);
+  // circleEls = Polymer.dom(this.root).querySelectorAll('circle');
+  // console.log('circleEls:',circleEls);
+  // circleEls = el.root.querySelectorAll('circle');
+  // console.log('circleEls3:',circleEls);
+  // var wrapperGroups = document.getElementsByClassName('wrapper-group');
+  // console.log('wrapperGroups:',wrapperGroups);
+  var nodeGroups = document.getElementsByClassName('asset-node');
+  console.log('nodeGroups:',nodeGroups);
+  assert(el.$$('circle'));
+});
+
+test('link created for two node tree', function() {
+  var el = fixture('basic');
+  el.data = JSON.stringify([
+    { uri: '/plane/my-plane' },
+    { uri: '/engine/1', parent: '/plane/my-plane'},
+  ]);
+  assert(el.$$('path.link'));
+});
+
+test('text created for one node tree', function() {
+  var el = fixture('basic');
+  el.data = JSON.stringify([{ uri: '/plane/my-plane' }]);
+  assert(el.$$('text'));
+});
+
+
+test('Click on a node for an event', function() {
+  var recievedTheEvent;
+  var el = fixture('basic');
+  el.data = JSON.stringify([{ uri: '/plane/my-plane' }]);
+  var aNode = el.$$('.asset-node');
+  window.addEventListener('tree-node-click', function (e) {
+    recievedTheEvent = true;
+  }, false);
+  var e = new MouseEvent('click', {
+    'view': window,
+    'bubbles': true,
+    'cancelable': true
+  });
+  aNode.dispatchEvent(e);
+  assert(recievedTheEvent);
+});
+
+
+
+      });
+    </script>
+  </body>
+</html>

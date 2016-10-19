@@ -1,0 +1,106 @@
+<link rel="import" href="../polymer/polymer.html">
+<script src="/components/d3/d3.js"></script> <!-- some would import -->
+<!--
+`asset-tree`
+
+
+@demo demo/index.html 
+-->
+
+<dom-module id="asset-tree">
+  <template>
+    <style>
+      :host { display: block; }
+    </style>
+
+<svg id='root' width="100%" height="100%" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+  <g class='wrapper-group' transform='translate(100,100)'>
+    <!-- 
+      <line x1='0' y1='0' x2='200' y2='200' style='stroke:red;stroke-width:2px;' /> 
+    -->
+  </g>
+</svg>
+
+
+  </template>
+  <script>
+Polymer({
+  is: 'asset-tree',
+  properties: {
+    /** Data to graph */
+    data: {
+      type: Array,
+      value: [],
+      observer: 'dataChanged',
+    },
+  },
+  /** Invoked whenever the data property is changed. */
+  dataChanged: function(newData) {
+    this._nodes = typeof newData == 'string' ? JSON.parse(newData) : newData;
+    this.render();
+  },
+  /** Draws the diagram. */
+  render: function(){
+    if (!this._nodes || !this._nodes.length) return;
+    var root = d3.stratify()
+      .id(function(d) { return d.uri; })
+      .parentId(function(d) { return d.parent; })
+      (this._nodes);
+    var layout = d3.tree().size([880, 880]); 
+    var nodes = layout(root); // tree layout stuff
+
+    var g = d3.select( this.$$('svg g.wrapper-group') );
+    var nodeG = g.selectAll('.node')  // adds each node as a group
+      .data(nodes.descendants())
+      .enter()
+        .append('g')
+        .attr('class','asset-node')
+          .attr('transform', function(d) { 
+            return 'translate(' + d.y + ',' + d.x + ')'; 
+          });
+
+    nodeG.append('circle')
+      .attr('r',15)  // attr r here seems required by webkit
+      .attr('fill','blue');
+
+    nodeG.append("text")
+      .attr("y", -15)
+      .attr("x", function(d) { return d.children ? 30 : -30; })
+      .style("text-anchor", function(d) {return d.children ? "end" : "start"; })
+      .style("font-size", '20px')
+      .text(function(d) { return d.id; });
+
+    // adds the links between the nodes
+    var link = g.selectAll(".link")
+      .data( nodes.descendants().slice(1))
+      .enter()
+        .append("path")
+        .attr("class", "link")
+        .style("stroke", function(d) { return 1; })
+        .attr('fill','none')
+        .attr('stroke','blue')
+        .attr('stroke-width','2px')
+        .attr("d", function(d) {
+           return "M" + d.y + "," + d.x
+             + "C" + (d.y + d.parent.y) / 2 + "," + d.x
+             + " " + (d.y + d.parent.y) / 2 + "," + d.parent.x
+             + " " + d.parent.y + "," + d.parent.x;
+           });
+
+    var that = this;
+    nodeG.on('click', function(d) { 
+      var bb = that.getBoundingClientRect();
+      var x = Math.floor((bb.right + bb.left) / 2);
+      var y = Math.floor((bb.bottom + bb.top) / 2);
+      var event = new CustomEvent('tree-node-click', { 
+        detail: { x:x, y:y,id:d.id },
+        bubbles: true
+      });
+      that.dispatchEvent(event);  // standard event system
+      that.fire(event);  // polymer event system
+    });
+  }
+});
+
+  </script>
+</dom-module>

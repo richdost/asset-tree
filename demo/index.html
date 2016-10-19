@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+  <head>
+    <title>asset-tree demo</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+
+    <link rel="import" href="../asset-tree.html">
+
+    <style is="custom-style" include="demo-pages-shared-styles">
+    </style>
+  </head>
+  <body>
+
+    <div class="vertical-section-container centered">
+      <h3>Basic asset-tree Demo</h3>
+      <demo-snippet>
+        <template>
+          <asset-tree></asset-tree>
+        </template>
+      </demo-snippet>
+    </div>
+
+<script>
+setTimeout(function(){
+  var el = document.querySelector('asset-tree');
+  el.data = [
+    { uri: '/engine/1', parent: '/wing/left'},
+    { uri: '/engine/2', parent: '/wing/left'},
+    { uri: '/engine/3', parent: '/wing/right'},
+    { uri: '/engine/4', parent: '/wing/right'},
+    { uri: '/wing/left', parent: '/frame/1'},
+    { uri: '/wing/right', parent: '/frame/1'},
+    { uri: '/cockpit/1', parent: '/frame/1'},
+    { uri: '/tail/1', parent: '/frame/1'},
+    { uri: '/frame/1', parent: '/plane/my-plane'},
+    { uri: '/plane/my-plane' }
+  ];
+  window.addEventListener('tree-node-click', function (e) {
+    alert('You clicked on ' + e.detail.id);
+  }, false);
+},100);
+</script>
+
+  </body>
+</html>
